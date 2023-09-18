@@ -1,8 +1,10 @@
 using UnityEngine;
-
+using System.Collections;
+using System.Collections.Generic;
 // Include the namespace required to use Unity UI and Input System
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour {
 	
@@ -10,6 +12,11 @@ public class PlayerController : MonoBehaviour {
 	public float speed;
 	public TextMeshProUGUI countText;
 	public GameObject winTextObject;
+
+	public int maxLife = 1;
+    public int currentLife;
+
+	public Transform respawnPoint;
 
     private float movementX;
     private float movementY;
@@ -23,6 +30,8 @@ public class PlayerController : MonoBehaviour {
 		// Assign the Rigidbody component to our private rb variable
 		rb = GetComponent<Rigidbody>();
 
+		currentLife = maxLife;
+
 		// Set the count to zero 
 		count = 0;
 
@@ -30,6 +39,20 @@ public class PlayerController : MonoBehaviour {
 
         // Set the text property of the Win Text UI to an empty string, making the 'You Win' (game over message) blank
         winTextObject.SetActive(false);
+		
+	}
+
+	void DelayedAction()
+    {
+        Debug.Log("Delayed Action");
+    }
+
+	void Update()
+	{
+		if (transform.position.y < -10)
+		{
+			Respawn();
+		}
 	}
 
 	void FixedUpdate ()
@@ -71,6 +94,28 @@ public class PlayerController : MonoBehaviour {
 		{
             // Set the text value of your 'winText'
             winTextObject.SetActive(true);
+			Invoke("DelayedAction", 100000);
+			SceneManager.LoadScene("MainMenu");
 		}
+	}
+
+	void OnCollisionEnter(Collision other)
+	{
+		if (other.gameObject.CompareTag("Enemy"))
+		{
+			currentLife--;
+			if (currentLife <= 0)
+			{
+				SceneManager.LoadScene("GameOver");
+			}
+		}
+	}
+
+	void Respawn(){
+		rb.velocity = Vector3.zero;
+		rb.angularVelocity = Vector3.zero;
+		rb.Sleep();
+
+		transform.position = respawnPoint.position;
 	}
 }
